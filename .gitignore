@@ -1,0 +1,9 @@
+build
+compile_commands.json
+.cache
+
+libnn.*
+nn
+
+
+*.o
