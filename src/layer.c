@@ -19,7 +19,8 @@ void LayerInit(Layer* layer, size_t inputCount, size_t outputCount)
     for (int i = 0; i < layer->neuronCount; i++) {
         layer->neurons[i] = NeuronInit(randomFloat(), DoublesAlloc(outputCount));
         for (int j = 0; j < layer->neurons[i].weights.count; j++) {
-            layer->neurons[i].weights.items[j] = ((rand() % 1000) / 1000.0) * sqrt(2.0 / (inputCount + layer->neuronCount));
+            // layer->neurons[i].weights.items[j] = ((rand() % 1000) / 1000.0) * sqrt(2.0 / (inputCount + layer->neuronCount));
+            layer->neurons[i].weights.items[j] = (randomFloat() + 0.1);
         }
     }
 }

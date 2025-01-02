@@ -4,6 +4,7 @@
 #include "misc.h"
 #include "network.h"
 #include "lists.h"
+#include <stdlib.h>
 #include <time.h>
 
 int main()

@@ -6,7 +6,6 @@
 double CostDerivative(double outputActivations, double y);
 void Backward(
     Network *network,
-    double *inputs,
     double *targets,
     size_t sampleCount,
     double learningRate
