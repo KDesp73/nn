@@ -87,6 +87,12 @@ static inline void DoublesFree(Doubles *list)
 }
 void DoublesZero(Doubles* doubles, size_t count);
 void DoublesRand(Doubles* doubles, size_t count);
+static inline Doubles DoublesAlloc(size_t capacity)
+{
+    Doubles result = {.count = capacity};
+    result.items = malloc(sizeof(double)*capacity);
+    return result;
+}
 
 /*------------------.
 | double* list      |
@@ -100,7 +106,12 @@ static inline Doubles2D Doubles2DInit(double* first, ...)
 }
 static inline void Doubles2DFree(Doubles2D* list)
 {
-    ListFree(list);
+    for(size_t i = 0; i < list->count; i++){
+        free(list->items[i]);
+        list->items[i] = NULL;
+    }
+    free(list->items);
+    list->count = 0;
 }
 
 #endif // LISTS_H

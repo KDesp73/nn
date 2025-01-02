@@ -1,43 +1,34 @@
 #include "lists.h"
+#include "misc.h"
 #include "network.h"
 #include <math.h>
-
-#define FULL
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 void LayerInit(Layer* layer, size_t inputCount, size_t outputCount)
 {
-    layer->inputCount = inputCount;
-    layer->outputCount = outputCount;
+    layer->neuronCount = inputCount;
 
-    // Initialize weights (inputCount * outputCount)
-    DoublesZero(&layer->weights, inputCount * outputCount);
-
-    // Initialize biases, outputs, and deltas (outputCount each)
-    DoublesZero(&layer->biases, outputCount);
-    DoublesZero(&layer->outputs, outputCount);
-    DoublesZero(&layer->deltas, outputCount);
-
-    for (int i = 0; i < layer->outputCount; i++) {
-        for (int j = 0; j < layer->inputCount; j++) {
-            // Xavier initialization (based on layer sizes)
-#if defined (XAVIER)
-            layer->weights.items[i * layer->inputCount + j] = ((rand() % 1000) / 1000.0) * sqrt(2.0 / (layer->inputCount + layer->outputCount));
-#elif defined (FULL)
-    layer->weights.items[i * layer->inputCount + j] = rand() / (RAND_MAX / 2.0) - 1.0;  // [-1, 1] range
-#endif
-        }
+    layer->neurons = (Neuron*) malloc(sizeof(Neuron) * inputCount);
+    if(!layer->neurons){
+        fprintf(stderr, "Failed to allocate memory for layer->neurons");
+        exit(1);
     }
 
-    for (int i = 0; i < layer->outputCount; i++) {
-        layer->biases.items[i] = BIAS_INIT;  // Try zero initialization
+    for (int i = 0; i < layer->neuronCount; i++) {
+        layer->neurons[i] = NeuronInit(randomFloat(), DoublesAlloc(outputCount));
+        for (int j = 0; j < layer->neurons[i].weights.count; j++) {
+            layer->neurons[i].weights.items[j] = ((rand() % 1000) / 1000.0) * sqrt(2.0 / (inputCount + layer->neuronCount));
+        }
     }
 }
 
 void LayerFree(Layer* layer)
 {
-    DoublesFree(&layer->weights);
-    DoublesFree(&layer->biases);
-    DoublesFree(&layer->outputs);
-    DoublesFree(&layer->deltas);
+    for(size_t i = 0; i < layer->neuronCount; i++) {
+        NeuronFree(&layer->neurons[i]);
+    }
+    free(layer->neurons);
 }
 

@@ -4,8 +4,14 @@
 #include "network.h"
 
 double CostDerivative(double outputActivations, double y);
-void Backward(Layer *layer, double *inputs, double *nextDeltas, double *nextWeights, int nextOutputCount, double *targets, double learningRate);
-void Forward(Layer *layer, double *inputs);
+void Backward(
+    Network *network,
+    double *inputs,
+    double *targets,
+    size_t sampleCount,
+    double learningRate
+);
+void Forward(Network* network);
 void TrainNetwork(Network *nn, double **inputs, double **targets, int sampleCount, int epochCount);
 
 

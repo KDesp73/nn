@@ -27,7 +27,17 @@ int main()
     );
 
     Network n;
-    NetworkInit(&n, SizesInit(2, 5, 3, 1, SIZESEND));
+    NetworkInit(&n, SizesInit(2, 2, 1, SIZESEND));
+
+    // n.layers[0].neurons[0].value = 1.0;
+    // n.layers[0].neurons[0].weights = DoublesInit(1.450530, 0.196067, DOUBLESEND);
+    // n.layers[0].neurons[1].value = 0.0;
+    // n.layers[0].neurons[1].weights = DoublesInit(1.329281, 0.191530, DOUBLESEND);
+    //
+    // n.layers[1].neurons[0].value = 0.999292;
+    // n.layers[1].neurons[0].weights = DoublesInit(5.749740, DOUBLESEND);
+    // n.layers[1].neurons[1].value = 0.727175;
+    // n.layers[1].neurons[1].weights = DoublesInit(-7.069996, DOUBLESEND);
 
     TrainNetwork(&n, inputs.items, targets.items, 4, EPOCH_COUNT);
     NetworkPrint(&n);
@@ -35,16 +45,14 @@ int main()
     printf("\nTesting the trained network:\n");
     for (int i = 0; i < 4; i++) {
         double *input = inputs.items[i];
-        double *current_input = input;
-
-        // Forward pass
-        for (int j = 0; j < n.layerCount; j++) {
-            Forward(&n.layers[j], current_input);
-            current_input = n.layers[j].outputs.items;
+        for(size_t k = 0; k < inputs.count; k++){
+            n.layers[0].neurons[k].value = input[k];
         }
 
+        Forward(&n);
+
         // Output result
-        double output = n.layers[n.layerCount - 1].outputs.items[0];
+        double output = n.layers[n.layerCount - 1].neurons[0].value;
         printf("Input: [%0.1f, %0.1f] -> Predicted: %0.4f, Target: %0.1f\n",
                 input[0], input[1], output, targets.items[i][0]);
     }

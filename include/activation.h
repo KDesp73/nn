@@ -13,7 +13,8 @@ typedef enum {
 
 static inline double sigmoid(double z)
 {
-    return 1.0 / (1.0 + exp(-z));
+    double sigma = 1.0 / (1.0 + exp(-z/THETA));
+    return sigma;
 }
 
 static inline double sigmoidPrime(double z)

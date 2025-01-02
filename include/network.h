@@ -5,19 +5,23 @@
 #include <stdlib.h>
 #include "config.h"
 
+typedef struct {
+    double value;
+    Doubles weights; // Forward
+    double delta;
+    double bias;
+} Neuron;
+
+Neuron NeuronInit(double value, Doubles weights);
+void NeuronFree(Neuron* neuron);
 
 typedef struct {
-    size_t inputCount;   // Number of inputs to this layer
-    size_t outputCount;  // Number of outputs (neurons) in this layer
-    Doubles weights;     // Array of weights (inputCount * outputCount)
-    Doubles biases;      // Array of biases (outputCount)
-    Doubles outputs;     // Array of outputs (outputCount)
-    Doubles deltas;      // Array of deltas (outputCount)
+    size_t neuronCount;  // Number of outputs (neurons) in this layer
+    Neuron* neurons;
 } Layer;
 
 void LayerInit(Layer* layer, size_t inputCount, size_t outputCount);
 void LayerFree(Layer* layer);
-
 
 typedef struct {
     size_t layerCount;
