@@ -2,10 +2,10 @@
 #define NETWORK_H
 
 #include "lists.h"
-#include <math.h>
 #include <stdlib.h>
+#include "config.h"
 
-#define MAX_LAYERS 128
+
 typedef struct {
     size_t inputCount;   // Number of inputs to this layer
     size_t outputCount;  // Number of outputs (neurons) in this layer
@@ -27,20 +27,6 @@ typedef struct {
 void NetworkInit(Network* network, const Sizes sizes);
 void NetworkFree(Network* network);
 void NetworkPrint(const Network* network);
-
-static inline double sigmoid(double z)
-{
-    return 1.0 / (1.0 + exp(-z));
-}
-
-static inline double sigmoidPrime(double z)
-{
-    return sigmoid(z)*(1-sigmoid(z));
-}
-
-double FeedForward(const Network *net, double a);
-void UpdateMiniBatch(Network *net, double **miniBatch, int miniBatchSize, double eta);
-double CostDerivative(double outputActivations, double y);
 
 
 #endif // NETWORK_H

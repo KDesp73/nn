@@ -86,5 +86,21 @@ static inline void DoublesFree(Doubles *list)
     ListFree(list);
 }
 void DoublesZero(Doubles* doubles, size_t count);
+void DoublesRand(Doubles* doubles, size_t count);
+
+/*------------------.
+| double* list      |
+`-----------------*/
+
+ListDef(Doubles2D, double*);
+#define DOUBLES2DEND NULL
+static inline Doubles2D Doubles2DInit(double* first, ...)
+{
+    ListInit(Doubles2D, double*, NULL);
+}
+static inline void Doubles2DFree(Doubles2D* list)
+{
+    ListFree(list);
+}
 
 #endif // LISTS_H

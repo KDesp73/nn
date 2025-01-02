@@ -1,0 +1,16 @@
+#ifndef CONFIG_H
+#define CONFIG_H
+
+#define LEARNING_RATE 0.01
+#define MIN_LEARNING_RATE 0.0001
+#define LEARNING_RATE_DECAY 0.999
+
+#define MAX_GRADIENT 10.0
+#define MAX_LAYERS 128
+
+#define ACTIVATION ACT_SIGMOID
+#define EPOCH_COUNT 10000
+
+#define BIAS_INIT 0.1
+
+#endif // CONFIG_H
