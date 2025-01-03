@@ -1,9 +1,9 @@
 #include "methods.h"
 #include "activation.h"
 #include "config.h"
-#include "misc.h"
 #include "network.h"
 #include <stdio.h>
+#include <stdbool.h>
 #include <assert.h>
 
 double Cost(double predicted, double target) {
@@ -25,6 +25,8 @@ static double sum(Network* network, size_t layerIndex, size_t nodeIndex)
     for(size_t i = 0; i < prevLayer->neuronCount; i++){
         s += prevLayer->neurons[i].value * prevLayer->neurons[i].weights.items[nodeIndex];
     }
+    if(config.biasEngage)
+        s += network->layers[layerIndex].neurons[nodeIndex].bias;
     return s;
 }
 
@@ -38,43 +40,6 @@ void Forward(Network* network)
     }
 }
 
-static void backprop(Network* n, size_t layerIndex, double* targets, size_t sampleCount, double learningRate)
-{
-    Layer* currentLayer = &n->layers[layerIndex];
-    Layer* prevLayer = (layerIndex == 0) ? NULL : &n->layers[layerIndex-1];
-    Layer* nextLayer = (layerIndex == n->layerCount-1) ? NULL : &n->layers[layerIndex+1];
-
-    for (size_t i = 0; i < currentLayer->neuronCount; i++) {
-        Neuron* neuron = &currentLayer->neurons[i];
-        double error = 0.0;
-
-        // Compute the errors
-        if (layerIndex == n->layerCount-1) {
-            // Last layer
-            error = targets[i] - neuron->value;
-            neuron->delta = error * neuron->value * (1 - neuron->value);
-        } else {
-            // Hidden layer: compute error from the next layer
-            for (size_t j = 0; j < nextLayer->neuronCount; j++) {
-                Neuron* nextNeuron = &nextLayer->neurons[j];
-                error += nextNeuron->delta * nextNeuron->weights.items[i];
-            }
-            neuron->delta = error * neuron->value * (1 - neuron->value);
-        }
-
-        if(prevLayer != NULL){
-            for (size_t j = 0; j < prevLayer->neuronCount; j++) {
-                Neuron* prevNeuron = &prevLayer->neurons[j];
-                // Update weights using the delta and the inputs from the previous layer
-                double input = (prevLayer == NULL) ? n->layers[0].neurons[j].value : prevLayer->neurons[j].value;
-                prevNeuron->weights.items[i] += learningRate * neuron->delta * input;
-            }
-        }
-        // Update the bias
-        neuron->bias += learningRate * neuron->delta;
-    }
-}
-
 void Backward(
     Network *network,
     double *targets,
@@ -82,38 +47,44 @@ void Backward(
     double learningRate
 )
 {
-    // for (int i = (int)network->layerCount - 1; i >= 0; i--) {
-    //     backprop(
-    //         network,
-    //         i,
-    //         targets,
-    //         sampleCount,
-    //         learningRate
-    //     );
-    // }
-
     Layer* lastLayer = &network->layers[network->layerCount-1];
+    Layer* secondLastLayer = &network->layers[network->layerCount-2];
     for(size_t i = 0; i < lastLayer->neuronCount; i++){
         Neuron* neuron = &lastLayer->neurons[i];
-        neuron->delta = (targets[i] - neuron->value) * neuron->value * (1 - neuron->value);
+        neuron->delta = (targets[i] - neuron->value) 
+            * activationPrime(neuron->value);
 
-        for(size_t j = 0; j < network->layers[network->layerCount-2].neuronCount; j++){
-            Neuron* neuronBefore = &network->layers[network->layerCount-2].neurons[j];
-            neuronBefore->weights.items[i] += learningRate * neuron->delta * neuronBefore->value;
+        for(size_t j = 0; j < secondLastLayer->neuronCount; j++){
+            Neuron* neuronBefore = &secondLastLayer->neurons[j];
+            neuronBefore->weights.items[i] += learningRate 
+                * neuron->delta
+                * neuronBefore->value;
         }
+        if(config.biasEngage)
+            neuron->bias += learningRate * neuron->delta;
     }
 
-    for(int r = network->layerCount - 3; r >= 0; r--){
-        for(size_t t = 0; t < network->layers[r].neuronCount; t++){
-            for(size_t i = 0; i < network->layers[r+1].neuronCount; i++){
+    for(int i = network->layerCount - 3; i >= 0; i--){
+        Layer *currentLayer = &network->layers[i];
+        Layer *nextLayer = &network->layers[i + 1];
+        Layer *twoAfterLayer = &network->layers[i + 2];
+
+        for(size_t j = 0; j < currentLayer->neuronCount; j++){
+            for(size_t k = 0; k < nextLayer->neuronCount; k++){
                 double sum = 0;
-                for(size_t yy = 0; yy < network->layers[r+2].neuronCount; yy++){
-                    sum += network->layers[r+1].neurons[i].weights.items[yy] * network->layers[r+2].neurons[yy].delta;
+                for(size_t l = 0; l < twoAfterLayer->neuronCount; l++){
+                    sum += nextLayer->neurons[k].weights.items[l] 
+                        * twoAfterLayer->neurons[l].delta;
                 }
                 
-                double err = network->layers[r+1].neurons[i].delta = sum * network->layers[r+1].neurons[i].value * (1 - network->layers[r+1].neurons[i].value);
-                network->layers[r].neurons[t].weights.items[i] += learningRate * network->layers[r].neurons[t].value * err;
+                double err = nextLayer->neurons[k].delta 
+                    = sum * activationPrime(nextLayer->neurons[k].value);
+                currentLayer->neurons[j].weights.items[k] += learningRate 
+                    * currentLayer->neurons[j].value 
+                    * err;
             }
+            if(config.biasEngage)
+                currentLayer->neurons[j].bias += learningRate * currentLayer->neurons[j].delta;
         }
     }
 }
@@ -128,9 +99,9 @@ void TrainNetwork(Network* nn, double** inputs, double** targets, int sampleCoun
 
     for (int epoch = 0; epoch < epochCount; epoch++) {
         double total_loss = 0.0;
-        double learningRate = LEARNING_RATE * pow(LEARNING_RATE_DECAY, epoch);
-        if (learningRate < MIN_LEARNING_RATE) {
-            learningRate = MIN_LEARNING_RATE;
+        double learningRate = config.learningRate * pow(config.learningRateDecay, epoch);
+        if (learningRate < config.minLearningRate) {
+            learningRate = config.minLearningRate;
         }
 
         for (int sample = 0; sample < sampleCount; sample++) {

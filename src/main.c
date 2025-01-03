@@ -1,5 +1,7 @@
 #include <stddef.h>
 #include <stdio.h>
+#include "activation.h"
+#include "config.h"
 #include "methods.h"
 #include "misc.h"
 #include "network.h"
@@ -10,6 +12,10 @@
 int main()
 {
     srand((unsigned int)time(NULL));
+    CONFIG_INIT();
+    ConfigLoad("nn.conf");
+    ConfigPrint();
+
 
     Doubles2D inputs = Doubles2DInit(
         DoublesInit(0.0, 0.0, DOUBLESEND).items,
@@ -28,19 +34,12 @@ int main()
     );
 
     Network n;
-    NetworkInit(&n, SizesInit(2, 2, 1, SIZESEND));
-
-    // n.layers[0].neurons[0].value = 1.0;
-    // n.layers[0].neurons[0].weights = DoublesInit(1.450530, 0.196067, DOUBLESEND);
-    // n.layers[0].neurons[1].value = 0.0;
-    // n.layers[0].neurons[1].weights = DoublesInit(1.329281, 0.191530, DOUBLESEND);
+    // NetworkInit(&n, SizesInit(2, 2, 1, SIZESEND));
     //
-    // n.layers[1].neurons[0].value = 0.999292;
-    // n.layers[1].neurons[0].weights = DoublesInit(5.749740, DOUBLESEND);
-    // n.layers[1].neurons[1].value = 0.727175;
-    // n.layers[1].neurons[1].weights = DoublesInit(-7.069996, DOUBLESEND);
+    // TrainNetwork(&n, inputs.items, targets.items, 4, config.epochs);
+    // NetworkdSave(&n, "nn.sav");
 
-    TrainNetwork(&n, inputs.items, targets.items, 4, EPOCH_COUNT);
+    NetworkLoad(&n, "nn.sav");
     NetworkPrint(&n);
 
     printf("\nTesting the trained network:\n");

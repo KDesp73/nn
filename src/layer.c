@@ -21,6 +21,7 @@ void LayerInit(Layer* layer, size_t inputCount, size_t outputCount)
         for (int j = 0; j < layer->neurons[i].weights.count; j++) {
             // layer->neurons[i].weights.items[j] = ((rand() % 1000) / 1000.0) * sqrt(2.0 / (inputCount + layer->neuronCount));
             layer->neurons[i].weights.items[j] = (randomFloat() + 0.1);
+            layer->neurons[i].bias = ((double)rand() / RAND_MAX) - 0.5;
         }
     }
 }

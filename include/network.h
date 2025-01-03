@@ -32,5 +32,7 @@ void NetworkInit(Network* network, const Sizes sizes);
 void NetworkFree(Network* network);
 void NetworkPrint(const Network* network);
 
+void NetworkLoad(Network* network, const char* file);
+void NetworkdSave(const Network* network, const char* file);
 
 #endif // NETWORK_H

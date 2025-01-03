@@ -10,6 +10,8 @@ typedef enum {
     ACT_TANH
 } Activation;
 
+const char* ActivationToString(Activation activation);
+Activation StringToActivation(const char* str);
 
 static inline double sigmoid(double z)
 {
@@ -19,7 +21,7 @@ static inline double sigmoid(double z)
 
 static inline double sigmoidPrime(double z)
 {
-    return sigmoid(z)*(1-sigmoid(z));
+    return (z)*(1-(z)); // z should be the sigmoid result
 }
 
 static inline double relu(double z)

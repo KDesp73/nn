@@ -1,8 +1,10 @@
 #ifndef LISTS_H
 #define LISTS_H
 
+#include <assert.h>
 #include <stdarg.h>
 #include <stddef.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 /*------------------.
@@ -70,6 +72,18 @@ static inline void SizesFree(Sizes *sizes)
 {
     ListFree(sizes);
 }
+static inline Sizes SizesAlloc(size_t capacity)
+{
+    assert(capacity > 0);
+
+    Sizes result = {.count = capacity};
+    result.items = malloc(sizeof(size_t)*capacity);
+    if(result.items == NULL) {
+        fprintf(stderr, "Failed to allocate memory for Sizes.items\n");
+        exit(1);
+    }
+    return result;
+}
 
 /*------------------.
 | double list       |
@@ -89,8 +103,14 @@ void DoublesZero(Doubles* doubles, size_t count);
 void DoublesRand(Doubles* doubles, size_t count);
 static inline Doubles DoublesAlloc(size_t capacity)
 {
+    assert(capacity > 0);
+
     Doubles result = {.count = capacity};
     result.items = malloc(sizeof(double)*capacity);
+    if(result.items == NULL) {
+        fprintf(stderr, "Failed to allocate memory for Doubles.items\n");
+        exit(1);
+    }
     return result;
 }
 

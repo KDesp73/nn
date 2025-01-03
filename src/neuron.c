@@ -7,7 +7,7 @@ Neuron NeuronInit(double value, Doubles weights)
     return (Neuron) {
         .value = value,
         .weights = weights,
-        .bias = BIAS_INIT,
+        .bias = config.biasInit,
         .delta = 0
     };
 }
