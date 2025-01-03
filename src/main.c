@@ -17,34 +17,17 @@ int main()
     ConfigLoad("nn.conf");
     ConfigPrint();
 
-    //
-    // Doubles2D inputs = Doubles2DInit(
-    //     DoublesInit(0.0, 0.0, DOUBLESEND).items,
-    //     DoublesInit(0.0, 1.0, DOUBLESEND).items,
-    //     DoublesInit(1.0, 0.0, DOUBLESEND).items,
-    //     DoublesInit(1.0, 1.0, DOUBLESEND).items,
-    //     NULL
-    // );
-    //
-    // Doubles2D targets = Doubles2DInit(
-    //     DoublesInit(0.0, DOUBLESEND).items,
-    //     DoublesInit(1.0, DOUBLESEND).items,
-    //     DoublesInit(1.0, DOUBLESEND).items,
-    //     DoublesInit(0.0, DOUBLESEND).items,
-    //     NULL
-    // );
-
     TrainingData data;
-    TrainingDataLoad(&data, "data/xor.dat");
+    TrainingDataLoad(&data, "data/or.dat");
     TrainingDataPrint(&data);
 
     Network n;
-    NetworkInit(&n, SizesInit(data.inputCount, 2, data.outputCount, SIZESEND));
+    NetworkInit(&n, SizesInit(data.inputCount, 3, data.outputCount, SIZESEND));
 
     TrainNetwork(&n, &data, config.epochs);
-    NetworkdSave(&n, "nn1.sav");
+    NetworkdSave(&n, "nn-or.sav");
 
-    // NetworkLoad(&n, "nn.sav");
+    // NetworkLoad(&n, "nn-xor.sav");
     NetworkPrint(&n);
 
     printf("\nTesting the trained network:\n");

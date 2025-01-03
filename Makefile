@@ -23,6 +23,9 @@ VERSION_MINOR = $(shell sed -n -e 's/\#define VERSION_MINOR \([0-9]*\)/\1/p' $(v
 VERSION_PATCH = $(shell sed -n -e 's/\#define VERSION_PATCH \([0-9]*\)/\1/p' $(version_file))
 VERSION = $(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_PATCH)
 
+LIB_INSTALL_DIR = /usr/lib
+HEADERS_INSTALL_DIR = /usr/local/include/nn
+
 # Determine the build type
 ifneq ($(type), RELEASE)
 	CFLAGS += -DDEBUG -ggdb
@@ -109,6 +112,15 @@ help: ## Show this help message
 .PHONY: verbose
 verbose: CFLAGS += -DVERBOSE
 verbose: all ## Build the project in verbose mode
+
+.PHONY: install
+install: clean all ## Install library and headers
+	sudo mkdir $(HEADERS_INSTALL_DIR)
+	sudo cp $(SO_NAME) $(LIB_INSTALL_DIR)
+	sudo cp $(A_NAME) $(LIB_INSTALL_DIR)
+	sudo cp ./include/* $(HEADERS_INSTALL_DIR)
+	@echo "[INFO] Library installed successfully"
+	
 
 # Phony targets to avoid conflicts with file names
 .PHONY: all clean distclean install uninstall dist compile_commands.json help check_tools verbose
