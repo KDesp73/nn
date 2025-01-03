@@ -1,6 +1,7 @@
 #include "methods.h"
 #include "activation.h"
 #include "config.h"
+#include "data.h"
 #include "network.h"
 #include <stdio.h>
 #include <stdbool.h>
@@ -89,8 +90,12 @@ void Backward(
     }
 }
 
-void TrainNetwork(Network* nn, double** inputs, double** targets, int sampleCount, int epochCount)
+void TrainNetwork(Network* nn, const TrainingData *data, int epochCount)
 {
+    size_t sampleCount = data->exampleCount;
+    double** inputs = data->inputs;
+    double** targets = data->outputs;
+
     double* errors = malloc(nn->layers[nn->layerCount - 1].neuronCount * sizeof(double));
     if (errors == NULL) {
         printf("Error: Failed to allocate memory for errors.\n");
@@ -128,6 +133,7 @@ void TrainNetwork(Network* nn, double** inputs, double** targets, int sampleCoun
         if (epoch % 2000 == 0) {
             printf("Epoch %d, Loss: %f\n", epoch, total_loss / sampleCount);
         }
+        nn->totalLoss = total_loss / sampleCount;
     }
 
     free(errors);

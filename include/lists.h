@@ -103,9 +103,10 @@ void DoublesZero(Doubles* doubles, size_t count);
 void DoublesRand(Doubles* doubles, size_t count);
 static inline Doubles DoublesAlloc(size_t capacity)
 {
-    assert(capacity > 0);
+    assert(capacity >= 0);
 
     Doubles result = {.count = capacity};
+    if(capacity == 0) return result;
     result.items = malloc(sizeof(double)*capacity);
     if(result.items == NULL) {
         fprintf(stderr, "Failed to allocate memory for Doubles.items\n");

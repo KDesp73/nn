@@ -26,6 +26,7 @@ void LayerFree(Layer* layer);
 typedef struct {
     size_t layerCount;
     Layer layers[MAX_LAYERS];
+    double totalLoss;
 } Network;
 
 void NetworkInit(Network* network, const Sizes sizes);

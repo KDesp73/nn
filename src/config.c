@@ -9,15 +9,15 @@ Config config = {0};
 void ConfigPrint()
 {
     printf("Neural Network Configuration\n");
-    printf("Learning Rate: %.2lf\n", config.learningRate);
-    printf("Learning Rate Decay: %.2lf\n", config.learningRateDecay);
-    printf("Minimum Learning Rate: %.2lf\n", config.minLearningRate);
-    printf("Epochs: %zu\n", config.epochs);
-    printf("Bias Init: %.2lf\n", config.biasInit);
-    printf("Bias Engage: %s\n", (config.biasEngage) ? "true" : "false");
-    printf("Max Gradient: %.2lf\n", config.maxGradient);
-    printf("Theta: %.2lf\n", config.theta);
-    printf("Activation: %s\n", ActivationToString(config.activation));
+    printf("  Learning Rate: %.2lf\n", config.learningRate);
+    printf("  Learning Rate Decay: %.2lf\n", config.learningRateDecay);
+    printf("  Minimum Learning Rate: %.2lf\n", config.minLearningRate);
+    printf("  Epochs: %zu\n", config.epochs);
+    printf("  Bias Init: %.2lf\n", config.biasInit);
+    printf("  Bias Engage: %s\n", (config.biasEngage) ? "true" : "false");
+    printf("  Max Gradient: %.2lf\n", config.maxGradient);
+    printf("  Theta: %.2lf\n", config.theta);
+    printf("  Activation: %s\n", ActivationToString(config.activation));
 }
 
 #include <string.h>

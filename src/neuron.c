@@ -2,6 +2,7 @@
 #include "lists.h"
 #include "network.h"
 
+
 Neuron NeuronInit(double value, Doubles weights)
 {
     return (Neuron) {
