@@ -115,6 +115,7 @@ verbose: all ## Build the project in verbose mode
 
 .PHONY: install
 install: clean all ## Install library and headers
+	sudo rm -rf $(HEADERS_INSTALL_DIR)
 	sudo mkdir $(HEADERS_INSTALL_DIR)
 	sudo cp $(SO_NAME) $(LIB_INSTALL_DIR)
 	sudo cp $(A_NAME) $(LIB_INSTALL_DIR)

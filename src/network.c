@@ -60,7 +60,7 @@ void NetworkLoad(Network* network, const char* file) {
         perror("Failed to open file");
         return;
     }
-    INFO("Loading network from %s", file);
+    DEBU("Loading network from %s", file);
 
     // Read the first line to get the number of layers and neurons in each layer
     char line[1024];
@@ -76,7 +76,7 @@ void NetworkLoad(Network* network, const char* file) {
 
     assert(layerCount <= MAX_LAYERS); // Ensure the number of layers does not exceed the limit
     network->layerCount = layerCount;
-    INFO("Layer count: %zu", layerCount);
+    DEBU("Layer count: %zu", layerCount);
 
     // Parse neuron counts for each layer
     for (size_t i = 0; i < layerCount; i++) {

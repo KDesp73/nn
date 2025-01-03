@@ -130,10 +130,11 @@ void TrainNetwork(Network* nn, const TrainingData *data, int epochCount)
 
         }
 
-        if (epoch % 2000 == 0) {
-            printf("Epoch %d, Loss: %f\n", epoch, total_loss / sampleCount);
-        }
+        // if (epoch % 2000 == 0) {
+        //     printf("Epoch %d, Loss: %f\n", epoch, total_loss / sampleCount);
+        // }
         nn->totalLoss = total_loss / sampleCount;
+        if(nn->totalLoss <= config.targetLoss) break;
     }
 
     free(errors);

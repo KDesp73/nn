@@ -18,9 +18,47 @@ void ConfigPrint()
     printf("  Max Gradient: %.2lf\n", config.maxGradient);
     printf("  Theta: %.2lf\n", config.theta);
     printf("  Activation: %s\n", ActivationToString(config.activation));
+    printf("  Target Loss: %lf\n", config.targetLoss);
 }
 
 #include <string.h>
+
+void ConfigSet(Config* config, const char* key, const char* value)
+{
+    if (strcmp(key, "learningRate") == 0) {
+        ConfigSetLearningRate(config, atof(value));
+    } else if (strcmp(key, "minLearningRate") == 0) {
+        ConfigSetMinLearningRate(config, atof(value));
+    } else if (strcmp(key, "learningRateDecay") == 0) {
+        ConfigSetLearningRateDecay(config, atof(value));
+    } else if (strcmp(key, "theta") == 0) {
+        ConfigSetTheta(config, atof(value));
+    } else if (strcmp(key, "maxGradient") == 0) {
+        ConfigSetMaxGradient(config, atof(value));
+    } else if (strcmp(key, "targetLoss") == 0) {
+        ConfigSetTargetLoss(config, atof(value));
+    } else if (strcmp(key, "activation") == 0) {
+        Activation act = -1;
+        if (strcmp(value, "SIGMOID") == 0) {
+            act = ACT_SIGMOID;
+        } else if (strcmp(value, "RELU") == 0) {
+            act = ACT_RELU;
+        } else if (strcmp(value, "TANH") == 0) {
+            act = ACT_TANH;
+        } else {
+            printf("Warning: Unknown activation type: '%s'\n", value);
+        }
+        ConfigSetActivation(config, act);
+    } else if (strcmp(key, "epochs") == 0) {
+        ConfigSetEpochs(config, (size_t)atoi(value));
+    } else if (strcmp(key, "biasInit") == 0) {
+        ConfigSetBiasInit(config, atof(value));
+    } else if (strcmp(key, "biasEngage") == 0) {
+        ConfigSetBiasEngage(config, strcmp(value, "true") == 0 || strcmp(value, "1") == 0);
+    } else {
+        printf("Warning: Unknown config key: '%s'\n", key);
+    }
+}
 
 void ConfigLoad(const char* file)
 {
@@ -56,35 +94,7 @@ void ConfigLoad(const char* file)
             end--;
         }
 
-        if (strcmp(key, "learningRate") == 0) {
-            config.learningRate = atof(value);
-        } else if (strcmp(key, "minLearningRate") == 0) {
-            config.minLearningRate = atof(value);
-        } else if (strcmp(key, "learningRateDecay") == 0) {
-            config.learningRateDecay = atof(value);
-        } else if (strcmp(key, "theta") == 0) {
-            config.theta = atof(value);
-        } else if (strcmp(key, "maxGradient") == 0) {
-            config.maxGradient = atof(value);
-        } else if (strcmp(key, "activation") == 0) {
-            if (strcmp(value, "SIGMOID") == 0) {
-                config.activation = ACT_SIGMOID;
-            } else if (strcmp(value, "RELU") == 0) {
-                config.activation = ACT_RELU;
-            } else if (strcmp(value, "TANH") == 0) {
-                config.activation = ACT_TANH;
-            } else {
-                printf("Warning: Unknown activation type: '%s'\n", value);
-            }
-        } else if (strcmp(key, "epochs") == 0) {
-            config.epochs = (size_t)atoi(value);
-        } else if (strcmp(key, "biasInit") == 0) {
-            config.biasInit = atof(value);
-        } else if (strcmp(key, "biasEngage") == 0) {
-            config.biasEngage = (strcmp(value, "true") == 0 || strcmp(value, "1") == 0);
-        } else {
-            printf("Warning: Unknown config key: '%s'\n", key);
-        }
+        ConfigSet(&config, key, value);
     }
 
     fclose(f);
