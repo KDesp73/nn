@@ -42,7 +42,7 @@ Activation StringToActivation(const char* str);
  */
 static inline double sigmoid(double z)
 {
-    double sigma = 1.0 / (1.0 + exp(-z / THETA));
+    double sigma = 1.0 / (1.0 + exp(-z / config.theta));
     return sigma;
 }
 
