@@ -3,6 +3,18 @@
 #include <stdlib.h>
 #include <string.h>
 
+bool TrainingDataValid(const TrainingData* data)
+{
+    return (
+        data != NULL &&
+        data->inputs != NULL &&
+        data->outputs != NULL &&
+        data->inputCount > 0 &&
+        data->outputCount > 0 &&
+        data->exampleCount > 0
+    );
+}
+
 void TrainingDataPrint(const TrainingData* data)
 {
     printf("Required Inputs: %zu\n", data->inputCount);

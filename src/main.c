@@ -25,7 +25,7 @@ int main()
     NetworkInit(&n, SizesInit(data.inputCount, 3, data.outputCount, SIZESEND));
 
     TrainNetwork(&n, &data, config.epochs);
-    NetworkdSave(&n, "nn-or.sav");
+    NetworkSave(&n, "nn-or.sav");
 
     // NetworkLoad(&n, "nn-xor.sav");
     NetworkPrint(&n);

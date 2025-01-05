@@ -148,7 +148,7 @@ void NetworkLoad(Network* network, const char* file) {
     fclose(f);
 }
 
-void NetworkdSave(const Network* network, const char* file)
+void NetworkSave(const Network* network, const char* file)
 {
     FILE* f = fopen(file, "w");
 

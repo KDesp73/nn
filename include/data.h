@@ -1,6 +1,7 @@
 #ifndef DATA_H
 #define DATA_H
 
+#include <stdbool.h>
 #include <stddef.h>
 typedef struct {
     size_t inputCount;
@@ -13,5 +14,6 @@ typedef struct {
 void TrainingDataLoad(TrainingData *data, const char* file);
 void TrainingDataFree(TrainingData* data);
 void TrainingDataPrint(const TrainingData* data);
+bool TrainingDataValid(const TrainingData* data);
 
 #endif // DATA_H

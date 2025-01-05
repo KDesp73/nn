@@ -92,6 +92,10 @@ void Backward(
 
 void TrainNetwork(Network* nn, const TrainingData *data, int epochCount)
 {
+    assert(epochCount > 0);
+    assert(nn != NULL);
+    assert(TrainingDataValid(data));
+
     size_t sampleCount = data->exampleCount;
     double** inputs = data->inputs;
     double** targets = data->outputs;
