@@ -1,7 +1,7 @@
 # Compiler and flags
 CC = gcc
 
-# Directories
+# Library directories
 SRC_DIR = src
 INCLUDE_DIR = include
 BUILD_DIR = build
@@ -14,42 +14,59 @@ LIBRARY_NAME = nn
 SO_NAME = lib$(LIBRARY_NAME).so
 A_NAME = lib$(LIBRARY_NAME).a
 
-# Target and version info
 TARGET = $(LIBRARY_NAME)
 
+# Repl directories
+REPL_SRC_DIR = repl/src
+REPL_INCLUDE_DIR = repl/include
+REPL_BUILD_DIR = repl/build
+REPL_TARGET = repl/nni
+
+REPL_CFLAGS = -Wall -I$(REPL_INCLUDE_DIR) -I$(INCLUDE_DIR)
+REPL_LDFLAGS = -L. -lnn -lm
+
+# Library version
 version_file = include/version.h
 VERSION_MAJOR = $(shell sed -n -e 's/\#define VERSION_MAJOR \([0-9]*\)/\1/p' $(version_file))
 VERSION_MINOR = $(shell sed -n -e 's/\#define VERSION_MINOR \([0-9]*\)/\1/p' $(version_file))
 VERSION_PATCH = $(shell sed -n -e 's/\#define VERSION_PATCH \([0-9]*\)/\1/p' $(version_file))
 VERSION = $(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_PATCH)
 
-LIB_INSTALL_DIR = /usr/lib
+LIB_INSTALL_DIR = /usr/local/lib
 HEADERS_INSTALL_DIR = /usr/local/include/nn
 
 # Determine the build type
 ifneq ($(type), RELEASE)
 	CFLAGS += -DDEBUG -ggdb
+	REPL_CFLAGS += -DDEBUG -ggdb
 else
 	CFLAGS += -O3
+	REPL_CFLAGS += -O3
 endif
 
-# Source and object files
+# Library source and object files
 SRC_FILES := $(shell find $(SRC_DIR) -name '*.c')
 OBJ_FILES = $(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(SRC_FILES))
+
+# Repl source and object files
+REPL_SRC_FILES := $(shell find $(REPL_SRC_DIR) -name '*.c')
+REPL_OBJ_FILES = $(patsubst $(REPL_SRC_DIR)/%.c,$(REPL_BUILD_DIR)/%.o,$(REPL_SRC_FILES))
 
 # Default target
 .DEFAULT_GOAL := help
 
 # Total source file count
 TOTAL_FILES := $(words $(SRC_FILES))
+REPL_TOTAL_FILES := $(words $(REPL_SRC_FILES))
 
 # Counter to track progress
 counter = 0
+repl_counter = 0
 
 # Targets
 
 .PHONY: all
-all: check_tools $(BUILD_DIR) static shared $(TARGET) ## Build the project
+all: check_tools $(BUILD_DIR) $(REPL_BUILD_DIR) static shared $(TARGET) $(REPL_TARGET) ## Build the project
 	@echo "Build complete."
 
 .PHONY: check_tools
@@ -61,14 +78,30 @@ $(BUILD_DIR): ## Create the build directory if it doesn't exist
 	@echo "[INFO] Creating build directory"
 	mkdir -p $(BUILD_DIR)
 
-$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c ## Compile source files with progress
+$(REPL_BUILD_DIR): ## Create the repl build directory
+	@echo "[INFO] Creating repl build directory"
+	mkdir -p $(REPL_BUILD_DIR)
+
+# Library object compilation
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
 	$(eval counter=$(shell echo $$(($(counter)+1))))
 	@echo "[$(counter)/$(TOTAL_FILES)] Compiling $< -> $@"
 	@$(CC) $(CFLAGS) -c -o $@ $<
 
-$(TARGET): $(BUILD_DIR) static ## Build executable using static library
+# Repl object compilation
+$(REPL_BUILD_DIR)/%.o: $(REPL_SRC_DIR)/%.c
+	$(eval repl_counter=$(shell echo $$(($(repl_counter)+1))))
+	@echo "[$(repl_counter)/$(REPL_TOTAL_FILES)] Compiling $< -> $@"
+	@$(CC) $(REPL_CFLAGS) -c -o $@ $<
+
+$(TARGET): $(BUILD_DIR) static ## Build library executable using static library
 	@echo "[INFO] Building executable: $(TARGET)"
 	@$(CC) src/main.c -o $(TARGET) -L. $(A_NAME) $(LDFLAGS) -I$(INCLUDE_DIR)
+
+$(REPL_TARGET): $(REPL_BUILD_DIR) $(REPL_OBJ_FILES) static shared ## Build the REPL (nni)
+	@echo "[INFO] Building REPL"
+	@$(CC) -o $@ $(REPL_OBJ_FILES) $(REPL_LDFLAGS)
+	@echo "[INFO] Executable created: $(REPL_TARGET)"
 
 .PHONY: shared
 shared: $(BUILD_DIR) $(OBJ_FILES) ## Build shared library
@@ -80,10 +113,20 @@ static: $(BUILD_DIR) $(OBJ_FILES) ## Build static library
 	@echo "[INFO] Building static library: $(A_NAME)"
 	@$(AR) rcs $(A_NAME) $(OBJ_FILES)
 
+.PHONY: install-repl
+install-repl: all ## Install the REPL executable to /usr/bin/
+	@echo "[INFO] Installing $(REPL_TARGET) to /usr/bin/"
+	cp $(REPL_TARGET) /usr/bin/nni
+
+.PHONY: uninstall-repl
+uninstall-repl: ## Remove the REPL executable from /usr/bin/
+	@echo "[INFO] Uninstalling nni"
+	rm -f /usr/bin/nni
+
 .PHONY: clean
-clean: ## Remove all build files and the executable
-	@echo "[INFO] Cleaning up build directory and executable."
-	rm -rf $(BUILD_DIR) $(TARGET) $(SO_NAME) $(A_NAME)
+clean: ## Remove all build files and executables
+	@echo "[INFO] Cleaning up build directories and executables."
+	rm -rf $(BUILD_DIR) $(REPL_BUILD_DIR) $(TARGET) $(REPL_TARGET) $(SO_NAME) $(A_NAME) nni
 
 .PHONY: distclean
 distclean: clean ## Perform a full clean, including backup and temporary files
@@ -111,6 +154,7 @@ help: ## Show this help message
 ## Enable verbose output for debugging
 .PHONY: verbose
 verbose: CFLAGS += -DVERBOSE
+verbose: REPL_CFLAGS += -DVERBOSE
 verbose: all ## Build the project in verbose mode
 
 .PHONY: install
@@ -121,7 +165,6 @@ install: clean all ## Install library and headers
 	sudo cp $(A_NAME) $(LIB_INSTALL_DIR)
 	sudo cp ./include/* $(HEADERS_INSTALL_DIR)
 	@echo "[INFO] Library installed successfully"
-	
 
 # Phony targets to avoid conflicts with file names
-.PHONY: all clean distclean install uninstall dist compile_commands.json help check_tools verbose
+.PHONY: all clean distclean install uninstall dist compile_commands.json help check_tools verbose install-repl uninstall-repl
