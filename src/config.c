@@ -21,8 +21,6 @@ void ConfigPrint()
     printf("  Target Loss: %lf\n", config.targetLoss);
 }
 
-#include <string.h>
-
 void ConfigSet(Config* config, const char* key, const char* value)
 {
     if (strcmp(key, "learningRate") == 0) {

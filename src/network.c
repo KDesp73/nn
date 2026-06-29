@@ -1,6 +1,5 @@
 #include "network.h"
 #include "lists.h"
-#include "lists.h"
 #include "misc.h"
 #include <stdio.h>
 #include <string.h>
@@ -72,15 +71,29 @@ void NetworkLoad(Network* network, const char* file) {
 
     // Parse the number of layers and neurons in each layer
     char* token = strtok(line, " ");
+    if (token == NULL) {
+        fprintf(stderr, "Error: Invalid network file format.\n");
+        fclose(f);
+        return;
+    }
     size_t layerCount = (size_t)atoi(token);
 
-    assert(layerCount <= MAX_LAYERS); // Ensure the number of layers does not exceed the limit
+    if (layerCount == 0 || layerCount > MAX_LAYERS) {
+        fprintf(stderr, "Error: Invalid layer count %zu.\n", layerCount);
+        fclose(f);
+        return;
+    }
     network->layerCount = layerCount;
     DEBU("Layer count: %zu", layerCount);
 
     // Parse neuron counts for each layer
     for (size_t i = 0; i < layerCount; i++) {
         token = strtok(NULL, " ");
+        if (token == NULL) {
+            fprintf(stderr, "Error: Missing neuron count for layer %zu.\n", i);
+            fclose(f);
+            return;
+        }
         size_t neuronCount = (size_t)atoi(token);
         network->layers[i].neuronCount = neuronCount;
 

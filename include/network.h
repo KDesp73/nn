@@ -85,7 +85,7 @@ typedef struct {
  * @param network Pointer to the Network to initialize.
  * @param sizes A dynamic array specifying the number of neurons in each layer.
  */
-void NetworkInit(Network* network, const Sizes sizes);
+void NetworkInit(Network* network, Sizes sizes);
 
 /**
  * Frees the resources associated with a Network.

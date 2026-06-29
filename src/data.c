@@ -33,7 +33,7 @@ void TrainingDataPrint(const TrainingData* data)
 void TrainingDataLoad(TrainingData *data, const char* file)
 {
     FILE* f = fopen(file, "r");
-    if (!file) {
+    if (!f) {
         perror("Failed to open file");
         exit(EXIT_FAILURE);
     }
@@ -88,11 +88,6 @@ void TrainingDataLoad(TrainingData *data, const char* file)
                 fprintf(stderr, "Error: Insufficient input values in line %zu\n", index + 1);
                 exit(EXIT_FAILURE);
             }
-        }
-
-        // Skip the pipe delimiter ("|") if present
-        if (token != NULL && strcmp(token, "|") == 0) {
-            token = strtok(NULL, " |");
         }
 
         // Parse outputs

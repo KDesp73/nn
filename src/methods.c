@@ -7,15 +7,14 @@
 #include <stdbool.h>
 #include <assert.h>
 
-double Cost(double predicted, double target) {
-    double diff = target - predicted;
-    return diff;
+double Cost(double predicted, double target)
+{
+    return 0.5 * (target - predicted) * (target - predicted);
 }
 
 double CostDerivative(double predicted, double target)
 {
-    double diff = target - predicted;
-    return diff* (target)*(1-target);
+    return predicted - target;
 }
 
 static double sum(Network* network, size_t layerIndex, size_t nodeIndex)
@@ -33,12 +32,19 @@ static double sum(Network* network, size_t layerIndex, size_t nodeIndex)
 
 void Forward(Network* network)
 {
-    for (int i = 1; i < network->layerCount; i++) {
-        Layer layer = network->layers[i];
-        for (int j = 0; j < layer.neuronCount; j++) {
-            layer.neurons[j].value = activation(sum(network, i, j));
+    for (size_t i = 1; i < network->layerCount; i++) {
+        Layer* layer = &network->layers[i];
+        for (size_t j = 0; j < layer->neuronCount; j++) {
+            layer->neurons[j].value = activation(sum(network, i, j));
         }
     }
+}
+
+static double clampGradient(double grad, double maxGradient)
+{
+    if (grad > maxGradient) return maxGradient;
+    if (grad < -maxGradient) return -maxGradient;
+    return grad;
 }
 
 void Backward(
@@ -48,44 +54,56 @@ void Backward(
     double learningRate
 )
 {
+    if (network->layerCount < 2) return;
+
     Layer* lastLayer = &network->layers[network->layerCount-1];
     Layer* secondLastLayer = &network->layers[network->layerCount-2];
-    for(size_t i = 0; i < lastLayer->neuronCount; i++){
+    double maxGrad = config.maxGradient;
+    for (size_t i = 0; i < lastLayer->neuronCount; i++) {
         Neuron* neuron = &lastLayer->neurons[i];
-        neuron->delta = (targets[i] - neuron->value) 
+        neuron->delta = (targets[i] - neuron->value)
             * activationPrime(neuron->value);
 
-        for(size_t j = 0; j < secondLastLayer->neuronCount; j++){
+        for (size_t j = 0; j < secondLastLayer->neuronCount; j++) {
             Neuron* neuronBefore = &secondLastLayer->neurons[j];
-            neuronBefore->weights.items[i] += learningRate 
-                * neuron->delta
-                * neuronBefore->value;
+            double grad = learningRate * neuron->delta * neuronBefore->value;
+            grad = clampGradient(grad, maxGrad);
+            neuronBefore->weights.items[i] += grad;
         }
-        if(config.biasEngage)
-            neuron->bias += learningRate * neuron->delta;
+        if (config.biasEngage) {
+            double grad = learningRate * neuron->delta;
+            grad = clampGradient(grad, maxGrad);
+            neuron->bias += grad;
+        }
     }
 
-    for(int i = network->layerCount - 3; i >= 0; i--){
-        Layer *currentLayer = &network->layers[i];
-        Layer *nextLayer = &network->layers[i + 1];
-        Layer *twoAfterLayer = &network->layers[i + 2];
+    if (network->layerCount < 3) return;
 
-        for(size_t j = 0; j < currentLayer->neuronCount; j++){
-            for(size_t k = 0; k < nextLayer->neuronCount; k++){
+    for (size_t i = network->layerCount - 2; i > 0; i--) {
+        size_t idx = i - 1;
+        Layer *currentLayer = &network->layers[idx];
+        Layer *nextLayer = &network->layers[idx + 1];
+        Layer *twoAfterLayer = &network->layers[idx + 2];
+
+        for (size_t j = 0; j < currentLayer->neuronCount; j++) {
+            for (size_t k = 0; k < nextLayer->neuronCount; k++) {
                 double sum = 0;
-                for(size_t l = 0; l < twoAfterLayer->neuronCount; l++){
-                    sum += nextLayer->neurons[k].weights.items[l] 
+                for (size_t l = 0; l < twoAfterLayer->neuronCount; l++) {
+                    sum += nextLayer->neurons[k].weights.items[l]
                         * twoAfterLayer->neurons[l].delta;
                 }
-                
-                double err = nextLayer->neurons[k].delta 
-                    = sum * activationPrime(nextLayer->neurons[k].value);
-                currentLayer->neurons[j].weights.items[k] += learningRate 
-                    * currentLayer->neurons[j].value 
-                    * err;
+
+                double delta = sum * activationPrime(nextLayer->neurons[k].value);
+                nextLayer->neurons[k].delta = delta;
+                double grad = learningRate * currentLayer->neurons[j].value * delta;
+                grad = clampGradient(grad, maxGrad);
+                currentLayer->neurons[j].weights.items[k] += grad;
             }
-            if(config.biasEngage)
-                currentLayer->neurons[j].bias += learningRate * currentLayer->neurons[j].delta;
+            if (config.biasEngage) {
+                double grad = learningRate * currentLayer->neurons[j].delta;
+                grad = clampGradient(grad, maxGrad);
+                currentLayer->neurons[j].bias += grad;
+            }
         }
     }
 }
@@ -100,12 +118,6 @@ void TrainNetwork(Network* nn, const TrainingData *data, int epochCount)
     double** inputs = data->inputs;
     double** targets = data->outputs;
 
-    double* errors = malloc(nn->layers[nn->layerCount - 1].neuronCount * sizeof(double));
-    if (errors == NULL) {
-        printf("Error: Failed to allocate memory for errors.\n");
-        return;
-    }
-
     for (int epoch = 0; epoch < epochCount; epoch++) {
         double total_loss = 0.0;
         double learningRate = config.learningRate * pow(config.learningRateDecay, epoch);
@@ -114,32 +126,21 @@ void TrainNetwork(Network* nn, const TrainingData *data, int epochCount)
         }
 
         for (int sample = 0; sample < sampleCount; sample++) {
-            for(size_t i = 0; i < nn->layers[0].neuronCount; i++){
+            for (size_t i = 0; i < nn->layers[0].neuronCount; i++) {
                 nn->layers[0].neurons[i].value = inputs[sample][i];
             }
 
-            // Forward pass
             Forward(nn);
-
-            // Backward pass
             Backward(nn, targets[sample], sampleCount, learningRate);
 
-            // Compute loss and errors
             Layer* outputLayer = &nn->layers[nn->layerCount - 1];
-            for (int i = 0; i < outputLayer->neuronCount; i++) {
+            for (size_t i = 0; i < outputLayer->neuronCount; i++) {
                 double output = outputLayer->neurons[i].value;
-                errors[i] = Cost(output, targets[sample][i]);
                 total_loss += (targets[sample][i] - output) * (targets[sample][i] - output);
             }
-
         }
 
-        // if (epoch % 2000 == 0) {
-        //     printf("Epoch %d, Loss: %f\n", epoch, total_loss / sampleCount);
-        // }
         nn->totalLoss = total_loss / sampleCount;
-        if(nn->totalLoss <= config.targetLoss) break;
+        if (nn->totalLoss <= config.targetLoss) break;
     }
-
-    free(errors);
 }
