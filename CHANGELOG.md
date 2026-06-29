@@ -11,6 +11,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - REPL (old `nni` project)
 
+### Fixed
+
+- network.h: Removed const from Sizes parameter in NetworkInit declaration 
+- activation.c: StringToActivation default return changed from -1 to ACT_SIGMOID
+- data.c: Fixed null-check (!file → !f); removed pipe-delimiter parsing logic
+- layer.c: int loop variables → size_t; moved bias init inside loop
+- methods.c: Cost now returns proper quadratic cost 0.5 * (target - predicted)^2 (was just diff)
+- methods.c: CostDerivative returns predicted - target (was incorrect)
+- methods.c: Added gradient clamping (clampGradient) to prevent exploding gradients
+- methods.c: Layer iteration: int → size_t, pointer-based access instead of copies
+- methods.c: Hidden-layer backprop loop rewrite — fixed off-by-one indexing and delta computation
+- methods.c: Removed malloc/free of errors array in training loop (unused)
+- methods.c: Removed dead code/commented printf
+- network.c: Added null-checks and validation in NetworkLoad for layer count, token parsing
+
 ## [0.0.2] - 2025-01-05 
 
 ### Added
