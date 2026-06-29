@@ -7,22 +7,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
-### Added (repl)
+### Added
 
-- `clear` command
-
-### Changed (repl)
-
-- updated Specification.md
-
+- REPL (old `nni` project)
 
 ## [0.0.2] - 2025-01-05 
 
-### Added (lib)
+### Added
 
 - Documentation in header files
 
-### Fixed (lib)
+### Fixed
 
 - Using config.theta instead of THETA macro
 - Using config.activation instead of ACTIVATION macro
@@ -30,7 +25,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [0.0.1] - 2025-01-03 
 
-### Added (lib)
+### Added
 
 - Added network structure
 - Forward pass
@@ -38,14 +33,3 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Load / Save network methods added
 - Loading training data from file
 
-### Added (repl)
-
-- `feed` command
-- `nn` command
-- `load` command
-- `save` command
-- `set` command
-- `train` command
-- `print` command
-- `help` command
-- `quit` command
