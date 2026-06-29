@@ -16,6 +16,13 @@ A_NAME = lib$(LIBRARY_NAME).a
 
 TARGET = $(LIBRARY_NAME)
 
+UNAME := $(shell uname)
+ifeq ($(UNAME), Darwin)
+	LINK_A = $(A_NAME)
+else
+	LINK_A = -l:$(A_NAME)
+endif
+
 # Repl directories
 REPL_SRC_DIR = repl/src
 REPL_INCLUDE_DIR = repl/include
@@ -96,7 +103,7 @@ $(REPL_BUILD_DIR)/%.o: $(REPL_SRC_DIR)/%.c
 
 $(TARGET): $(BUILD_DIR) static ## Build library executable using static library
 	@echo "[INFO] Building executable: $(TARGET)"
-	@$(CC) src/main.c -o $(TARGET) -L. $(A_NAME) $(LDFLAGS) -I$(INCLUDE_DIR)
+	@$(CC) src/main.c -o $(TARGET) -L. $(LINK_A) $(LDFLAGS) -I$(INCLUDE_DIR)
 
 $(REPL_TARGET): $(REPL_BUILD_DIR) $(REPL_OBJ_FILES) static shared ## Build the REPL (nni)
 	@echo "[INFO] Building REPL"
